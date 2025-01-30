@@ -1,0 +1,63 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-1.1.x", "darwin-arm64"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AllowedTime {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  startAt   DateTime
+  endAt     DateTime
+}
+
+model User {
+  id               Int            @id @default(autoincrement())
+  username         String         @unique
+  email            String         @unique
+  password         String
+  timeZone         String
+  role             Role           @default(MEMBER)
+  profilePic       String
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  conversationsIds String[]
+  conversations    Conversation[]
+  messages         Message[]
+}
+
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participantsIds Int[]
+  Participants    User[]
+
+  messagesIds String[]
+  messages    Message[]
+}
+
+model Message {
+  id Int @id @default(autoincrement())
+
+  conversationId Int
+  conversations  Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId Int
+  sender   User @relation(fields: [senderId], references: [id])
+
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
