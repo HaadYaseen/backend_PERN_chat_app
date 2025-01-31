@@ -52,7 +52,7 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
         req.user = user;
         next()
     } catch (error) {
-        console.log()
+        console.log('Error in protect route middleware: ', error)
     }
 };
 
@@ -92,7 +92,7 @@ export const isAdmin = async (req: Request, res: Response, next: NextFunction): 
         req.user = user;
         next()
     } catch (error) {
-        console.log()
+        console.log('Error in isAdmin middleware: ', error)
     }
 };
 

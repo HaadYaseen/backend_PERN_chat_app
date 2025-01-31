@@ -22,11 +22,12 @@ model User {
   email            String         @unique
   password         String
   timeZone         String
+  isOnline         Boolean        @default(false)
   role             Role           @default(MEMBER)
   profilePic       String
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  conversationsIds String[]
+  conversationsIds Int[]
   conversations    Conversation[]
   messages         Message[]
 }

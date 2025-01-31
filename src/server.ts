@@ -8,9 +8,14 @@ import messageRoutes from './routes/message.route';
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-
+const FRONTEND_URL = process.env.FRONTEND_URL;
 // Middleware
-app.use(cors());
+app.use(cors(
+  {
+    origin: FRONTEND_URL,
+    credentials: true
+  }
+));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Routes

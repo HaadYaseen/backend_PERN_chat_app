@@ -6,7 +6,8 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed": "ts-node prisma/AdminSeeder.ts"
+    "seed": "ts-node prisma/AdminSeeder.ts",
+    "seed-time": "ts-node prisma/timeSeeder.ts"
   },
   "keywords": [],
   "author": "",

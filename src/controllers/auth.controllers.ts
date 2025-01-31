@@ -1,12 +1,12 @@
 import { Request, Response } from "express"
 import prisma from "../db/prisma"
 import bcryptjs from "bcryptjs"
-import generateTokenSetCookie, { generateToken } from "../utils/generateToken"
-// import { DateTime } from "luxon"
+import { generateToken } from "../utils/generateToken"
+import { changeUserStatus } from "../utils/changeUserStatus";
 
 export const signup = async (req: Request, res: Response): Promise<any> => {
     try {
-        const { email, username, password, confirmPassword, timeZone } = req?.body
+        const { email, username, password, confirmPassword, timezone } = req?.body
 
         if (!email || !username || !password || !confirmPassword) {
             return res.status(400).json({ error: "Please fill in all fields" })
@@ -36,7 +36,7 @@ export const signup = async (req: Request, res: Response): Promise<any> => {
                 username,
                 password: hashedPassword,
                 profilePic: randomProfilePic,
-                timeZone,
+                timeZone: timezone,
             }
         })
         if (newUser) {
@@ -49,6 +49,8 @@ export const signup = async (req: Request, res: Response): Promise<any> => {
                 email: newUser.email,
                 username: newUser.username,
                 profilePic: newUser.profilePic,
+                role: newUser.role,
+                isOnline: newUser.isOnline,
             });
         }
         else {
@@ -58,7 +60,7 @@ export const signup = async (req: Request, res: Response): Promise<any> => {
         console.log("ERROR: ", error.message)
         res.status(500).json({ error: "Internal Server error" })
     }
-}
+};
 export const login = async (req: Request, res: Response): Promise<any> => {
     try {
         const { email, password } = req.body;
@@ -71,77 +73,42 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             return res.status(400).json({ error: "Invalid credentials" })
         }
         const token = generateToken(user.id, user.role, user.username, user.email)
+        const userOnline = await changeUserStatus(user.id, true)
         res.header('Authorization', `Bearer ${token}`);
         res.status(200).json({
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            profilePic: user.profilePic,
-            token: token
+            id: userOnline.id,
+            email: userOnline.email,
+            username: userOnline.username,
+            profilePic: userOnline.profilePic,
+            role: userOnline.role,
+            isOnline: userOnline.isOnline
         },)
     }
     catch (error: any) {
         console.log("ERROR: ", error.message)
         res.status(500).json({ error: "Internal Server error" })
     }
-}
+};
 export const logout = async (req: Request, res: Response): Promise<any> => {
     try {
-        res.cookie("jwt", "", { maxAge: 0 });
+        await changeUserStatus(req.user.id, false)
+        res.header('Authorization', '');
         res.status(200).json({ message: "Logged out successfully" })
     } catch (error: any) {
         console.log(error.message)
         res.status(500).json({ message: "Internal Server error" })
     }
-}
-export const getMe = async (req: Request, res: Response): Promise<any> => {
-    try {
-        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-        res.status(200).json({
-            id: user?.id,
-            username: user?.username,
-            email: user?.email,
-            profilePic: user?.profilePic
-        })
-    } catch (error: any) {
-        console.log("ERROR: ", error.message)
-        res.status(500).json({ error: "Internal Server error" })
-    }
-}
+};
 export const changeTime = async (req: Request, res: Response): Promise<any> => {
     try {
         const { startAt, endAt, id } = req.body;
-
-        // const startAtInt = parseInt(startAt);
-        // const endAtInt = parseInt(endAt);
-        // if (isNaN(startAtInt) || isNaN(endAtInt)) {
-        //     return res.status(400).json({ error: "Invalid time" })
-        // }
         const setTime = await prisma.allowedTime.update({
             where: { id: parseInt(id) },
             data: { startAt: startAt, endAt: endAt }
         });
-        res.status(200).json({ time: setTime })
+        res.status(200).json({ time: setTime });
     } catch (error: any) {
         console.log("ERROR: ", error.message)
         res.status(500).json({ error: "Internal Server error" })
     }
-}
-export const createTime = async (req: Request, res: Response): Promise<any> => {
-    try {
-        const { startAt, endAt } = req.body;
-
-        // const startAtInt = parseInt(startAt);
-        // const endAtInt = parseInt(endAt);
-        // if (isNaN(startAtInt) || isNaN(endAtInt)) {
-        //     return res.status(400).json({ error: "Invalid time" })
-        // }
-        const setTime = await prisma.allowedTime.create({
-            data: { startAt: startAt, endAt: endAt }
-        });
-        res.status(200).json({ time: setTime })
-    } catch (error: any) {
-        console.log("ERROR: ", error.message)
-        res.status(500).json({ error: "Internal Server error" })
-    }
-} // remove this api to avoid clash ( make a seeder file instead with dummy default time and update it using the update api)
+};

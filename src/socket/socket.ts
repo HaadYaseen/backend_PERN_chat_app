@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const app = express();
 
@@ -8,7 +9,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:5173"],
+        origin: [`${FRONTEND_URL}`],
         methods: ["GET", "POST"]
     }
 })
@@ -31,6 +32,6 @@ io.on("connection", (socket) => {
         delete userSocketMap[userId]
         io.emit("getOnlineUsers", Object.keys(userSocketMap))
     })
-})
+});
 
 export { app, io, server }
