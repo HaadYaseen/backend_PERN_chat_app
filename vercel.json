@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/server.ts",
+      "use": "@vercel/node",
+      "config": {
+        "buildCommand": "tsc && cp package*.json ./",
+        "includeFiles": [
+          "src/**/*"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "./server.js"
+    }
+  ]
+}
